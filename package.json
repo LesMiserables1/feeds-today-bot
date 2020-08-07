@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/LesMiserables1/feeds-today-bot#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "express": "^4.17.1"
   }
 }
