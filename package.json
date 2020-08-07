@@ -1,0 +1,22 @@
+{
+  "name": "feeds-today-bot",
+  "version": "1.0.0",
+  "description": "telegram bot for providing feeds everyday",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LesMiserables1/feeds-today-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LesMiserables1/feeds-today-bot/issues"
+  },
+  "homepage": "https://github.com/LesMiserables1/feeds-today-bot#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
