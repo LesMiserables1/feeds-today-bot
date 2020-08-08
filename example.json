@@ -1,0 +1,25 @@
+{
+    "update_id": 559581093,
+    "message": {
+      "message_id": 6,
+      "from": {
+        "id": 680834191,
+        "is_bot": false,
+        "first_name": "Andre",
+        "username": "hitskier",
+        "language_code": "en"
+        },
+      "chat": {
+        "id": 680834191,
+        "first_name": "Andre",
+        "username": "hitskier",
+        "type": "private"
+        },
+      "date": 1596867221,
+      "text": "/test",
+      "entities": [
+            ["Object"
+            ]
+        ]
+    }
+}
