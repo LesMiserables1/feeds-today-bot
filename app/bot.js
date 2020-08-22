@@ -3,6 +3,7 @@ const room = require('../model/db.js')
 const news = require('./news.js')
 const FormData = require('form-data')
 const fs = require('fs')
+const { text } = require('body-parser')
 const TOKEN_BOT = process.env.TOKEN_BOT
 const BASE_URI = `https://api.telegram.org/bot${TOKEN_BOT}`
 
@@ -33,12 +34,20 @@ let extractMessage = async (body) => {
 2. Bank Account BCA: 8190365833 (a.n Andre)
 3. Dana : https://link.dana.id/qr/s119i5v
 `
-            sendMessage({chat_id : chat_id,text : text})
+            await sendMessage({chat_id : chat_id,text : text})
+            await sendPhoto({chat_id : chat_id})
+            sendMessage({chat_id : chat_id,text : 'thank you for supporting my owner'})
+            setCommandCancel({chat_id : chat_id})
             
         } else if (command[1] == 'feedback') {
-
+            let text = 
+            `if you feel i am not good enough, feel free to send my owner your feedback to developer.story4@gmail.com`
+            sendMessage({chat_id : chat_id,text : text})
+            setCommandCancel({chat_id : chat_id})
         } else if (command[1] == 'cancel') {
-
+            let text =
+            `the command has been cancelled`
+            sendMessage({chat_id:chat_id,text:text})
         } else if (command[1] == 'start') {
             let text =
                 `hi, i am <b>Feeds Today</b> bot.
@@ -55,7 +64,7 @@ Available commands:
 /feedback - send your valuable feedback to my owner
 /cancel - cancel the current command
 
-contact my owner through dev-story@gmail.com for anything you have in mind.
+contact my owner through developer.story4@gmail.com for anything you have in mind.
 
 `
             sendMessage({ chat_id: chat_id, text: text })
@@ -82,17 +91,22 @@ let sendMessage = async (data) => {
 
 }
 let sendPhoto = async (data)=>{
+    let caption = 
+    `4. Gopay
+this is my Gopay qr code, you can scan it or upload it to donate by gopay
+    `
     const form = new FormData()
     form.append('chat_id', data.chat_id)
-    form.append('photo',fs.createReadStream('img/gopay.jpg'))
+    form.append('photo',fs.createReadStream('img/gopay.png'))
+    form.append('caption',caption)
     try {
-        await axios.post(BASE_URI + '/sendPhoto', {
-            chat_id : data.chat_id,
-
-        })
+        await axios.post(BASE_URI+'/sendPhoto',form,{headers : form.getHeaders()})
     } catch (error) {
         
     }
+}
+let setCommandCancel = async (data)=>{
+    await room.updateRoom({ chat_id: data.chat_id, command: 'cancel' })
 }
 let setCommands = async () => {
     try {
@@ -105,6 +119,7 @@ let setCommands = async () => {
                 { command: '/setlang', description: 'set language for this room' },
                 { command: '/config', description: "list this room's configuration" },
                 { command: '/donate', description: 'support my nerd owner' },
+                { command: '/feedback', description: 'send your valuable feedback to my owner' },
                 { command: '/cancel', description: 'cancel the current command' }
             ]
         })
@@ -121,15 +136,20 @@ let setQueryCommand = async (data) => {
 let headlineCommand = async (data) => {
     let roomChat = await room.getRoom(data.chat_id)
     let resp = await news.headlineAPI({ lang: roomChat.lang, topic: roomChat.topic })
-    for (let i = 0; i < 7; ++i) {
-        let text =
-            `<b>${resp.data.articles[i].title}</b>
+    if(resp.data.totalResults == 0){
+        sendMessage({ chat_id: data.chat_id, text: `i can't find anything right now` })
+    }else {
+        for (let i = 0; i < Math.min(7,resp.data.totalResults); ++i) {
+            let text =
+                `<b>${resp.data.articles[i].title}</b>
 ${resp.data.articles[i].description}
 ${resp.data.articles[i].url}    
-`
-        sendMessage({ chat_id: data.chat_id, text: text })
+    `
+            sendMessage({ chat_id: data.chat_id, text: text })
+        }
+        setCommandCancel({chat_id : data.chat_id})
     }
-    room.updateRoom({ chat_id: chat_id, command: 'cancel' })
+
 }
 
 let configCommand = async (data) => {
@@ -145,7 +165,7 @@ you can change :
 language by command /setlang
 topic by command /settopic
 
-if you are lazy to set me up, i will send you news in english with general topic
+if you are lazy to set me up, i will send you the headline news in english with general topic
 `
     sendMessage({ chat_id: data.chat_id, text: text })
 }
@@ -191,7 +211,7 @@ let proceedMessage = async (data) => {
     try {
         if (command == 'search') {
             let resp = await news.searchAPI({query:msg})
-            for (let i = 0; i < 7; ++i) {
+            for (let i = 0; i <  Math.min(7,resp.data.totalResults); ++i) {
                 let text =
                     `<b>${resp.data.articles[i].title}</b>
 ${resp.data.articles[i].description}
@@ -199,7 +219,7 @@ ${resp.data.articles[i].url}
                 `
                 sendMessage({ chat_id: data.chat_id, text: text })
             }
-            room.updateRoom({ chat_id: data.chat_id, command: 'cancel' })
+            setCommandCancel({chat_id : data.chat_id})
         }
         else if (command == 'headlines') {
 
@@ -209,14 +229,14 @@ ${resp.data.articles[i].url}
             await room.changeRoomTopic({ chat_id: data.chat_id, id: msg })
             let text = `topic has been set up`
             sendMessage({ chat_id: data.chat_id, text: text })
-            room.updateRoom({ chat_id: data.chat_id, command: 'cancel' })
+            setCommandCancel({chat_id : data.chat_id})
 
         } else if (command == 'setlang') {
 
             await room.changeRoomLang({ chat_id: data.chat_id, id: msg })
             let text = `language has been set up`
             sendMessage({ chat_id: data.chat_id, text: text })
-            room.updateRoom({ chat_id: data.chat_id, command: 'cancel' })
+            setCommandCancel({chat_id : data.chat_id})
 
         } else if (command == 'config') {
 
