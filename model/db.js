@@ -10,60 +10,70 @@ let roomSchema = new moongose.Schema({
     chat_id : Number,
     command : String,
     lang : {type : String, default : 'en'},
-    topic : {type : String, default : 'universal'}
+    topic : {type : String, default : 'general'}
 
 })
 
 const langSchema = new moongose.Schema({
+    id : Number,
     lang : String
 })
 const topicSchema = new moongose.Schema({
+    id : Number,
     topic : String
 })
 
 const Room = moongose.model('Room',roomSchema)
-const lang = moongose.model('Language',langSchema)
-const topic = moongose.model('Topic',topicSchema)
+const Lang = moongose.model('Language',langSchema)
+const Topic = moongose.model('Topic',topicSchema)
 
-let addRoom = async(data)=>{
+let updateRoom = async(data)=>{
     await Room.findOneAndUpdate({ chat_id : data.chat_id }, {$set : { command : data.command}},{
         upsert: true,
         setDefaultsOnInsert: true
     })
 }
-let changeRoomLang = ()=>{
 
+let changeRoomLang = async(data)=>{
+    let lang = await Lang.findOne({id : data.id}).exec()
+    await Room.findOneAndUpdate({chat_id : data.chat_id},{$set : {lang : lang.lang}})
 }
 
-let changeRoomTopic = ()=>{
-    
+let changeRoomTopic = async(data)=>{
+    let topic = await Topic.findOne({id : data.id}).exec()
+    await Room.findOneAndUpdate({chat_id : data.chat_id},{$set : {topic : topic.topic}})
 }
 
 let addLang = async(data)=>{
-    lang.create({lang : data.lang})
+    Lang.create({lang : data.lang,id : data.id})
 }
 
 let addTopic = async(data)=>{
-    topic.create({topic : data.topic})
+    Topic.create({topic : data.topic, id :data.id})
 }
 
-let getLang = async(data)=>{
-    let lang = Room.findOne({chat_id : data}).exec()
+let getRoom = (data)=>{
+    let room = Room.findOne({chat_id : data}).exec()
+    return room
+}
+
+let getAllLang = ()=>{
+    let lang = Lang.find({})
     return lang
 }
 
-let getTopic = (data)=>{
-    let topic = Room.findOne({chat_id : data}).exec()
+let getAllTopic = ()=>{
+    let topic = Topic.find({})
     return topic
 }
 
-
 module.exports = {
-    addRoom : addRoom,
-    getTopic : getTopic,
-    getLang : getLang,
+    updateRoom : updateRoom,
     addLang : addLang,
     addTopic : addTopic,
     changeRoomLang : changeRoomLang,
-    changeRoomTopic : changeRoomTopic
+    changeRoomTopic : changeRoomTopic,
+    getAllLang : getAllLang,
+    getAllTopic : getAllTopic,
+    getRoom : getRoom
 } 
